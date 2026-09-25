@@ -1,0 +1,28 @@
+[
+  { "speciesId": "rayquaza", "speciesName": "Rayquaza", "raidAttackerTier": 1, "note": "Top overall attacker (Dragon/Flying), consistently S-tier across raid types." },
+  { "speciesId": "mewtwo", "speciesName": "Mewtwo", "raidAttackerTier": 1, "note": "Top Psychic attacker with Shadow Ball coverage." },
+  { "speciesId": "kyogre", "speciesName": "Kyogre", "raidAttackerTier": 1, "note": "Best Water-type raid attacker." },
+  { "speciesId": "groudon", "speciesName": "Groudon", "raidAttackerTier": 2, "note": "Strong Ground attacker with Fire coverage (Primal even stronger)." },
+  { "speciesId": "dialga", "speciesName": "Dialga", "raidAttackerTier": 1, "note": "Top Steel/Dragon attacker and bulky raider." },
+  { "speciesId": "palkia", "speciesName": "Palkia", "raidAttackerTier": 2, "note": "Strong Water/Dragon attacker." },
+  { "speciesId": "giratina_origin", "speciesName": "Giratina (Origin)", "raidAttackerTier": 2, "note": "Top Ghost attacker." },
+  { "speciesId": "zacian_hero", "speciesName": "Zacian (Hero)", "raidAttackerTier": 1, "note": "Top Fairy attacker, huge attack stat." },
+  { "speciesId": "landorus_incarnate", "speciesName": "Landorus (Incarnate)", "raidAttackerTier": 2, "note": "Strong Ground attacker, good bulk." },
+  { "speciesId": "terrakion", "speciesName": "Terrakion", "raidAttackerTier": 2, "note": "Top Fighting-type raid attacker." },
+  { "speciesId": "excadrill", "speciesName": "Excadrill", "raidAttackerTier": 2, "note": "Excellent Ground attacker, easy to obtain via raids/eggs." },
+  { "speciesId": "garchomp", "speciesName": "Garchomp", "raidAttackerTier": 2, "note": "Strong, accessible Dragon/Ground attacker." },
+  { "speciesId": "metagross", "speciesName": "Metagross", "raidAttackerTier": 2, "note": "Top Steel attacker, common raid boss." },
+  { "speciesId": "rampardos", "speciesName": "Rampardos", "raidAttackerTier": 2, "note": "Highest Rock-type attack stat in the game." },
+  { "speciesId": "darkrai", "speciesName": "Darkrai", "raidAttackerTier": 2, "note": "Top Dark-type attacker and raid boss." },
+
+  { "speciesId": "blissey", "speciesName": "Blissey", "gymDefenderTier": 1, "note": "Best gym defender in the game due to massive HP." },
+  { "speciesId": "snorlax", "speciesName": "Snorlax", "gymDefenderTier": 2, "note": "High HP/Def, classic wild-caught defender." },
+  { "speciesId": "togekiss", "speciesName": "Togekiss", "gymDefenderTier": 2, "note": "Fairy/Flying typing resists common attackers, solid bulk." },
+  { "speciesId": "gyarados", "speciesName": "Gyarados", "gymDefenderTier": 3, "note": "Decent bulk, common wild/raid catch." },
+  { "speciesId": "sylveon", "speciesName": "Sylveon", "gymDefenderTier": 3, "note": "Fairy typing and good bulk for a wild-catchable defender." },
+  { "speciesId": "melmetal", "speciesName": "Melmetal", "gymDefenderTier": 2, "note": "Very high stat product, strong Steel defender." },
+  { "speciesId": "umbreon", "speciesName": "Umbreon", "gymDefenderTier": 3, "note": "Solid Dark-type bulk from a common Eeveelution." },
+  { "speciesId": "chansey", "speciesName": "Chansey", "gymDefenderTier": 3, "note": "Blissey's pre-evolution, still very high HP." },
+  { "speciesId": "lapras", "speciesName": "Lapras", "gymDefenderTier": 3, "note": "Solid Water/Ice bulk, decent wild catch." },
+  { "speciesId": "steelix", "speciesName": "Steelix", "gymDefenderTier": 3, "note": "High Defense stat, common raid/wild catch." }
+]

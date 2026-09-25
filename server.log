@@ -1,0 +1,5 @@
+
+> pogo-catch-list@0.1.0 serve
+> tsx src/server/index.ts
+
+Pokemon GO catch-list dashboard running at http://localhost:3000
