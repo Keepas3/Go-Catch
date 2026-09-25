@@ -7,7 +7,8 @@
   "scripts": {
     "sync": "tsx src/data-sync/run.ts",
     "serve": "tsx src/server/index.ts",
-    "dev": "npm run sync && npm run serve"
+    "dev": "npm run sync && npm run serve",
+    "start": "npm run sync && npm run serve"
   },
   "dependencies": {
     "express": "^4.19.2"
