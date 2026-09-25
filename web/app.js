@@ -69,27 +69,6 @@ function safeHref(url) {
   return "#";
 }
 
-const AUTH_TOKEN_KEY = "pogo_auth_token";
-
-// Only asked for if the server actually has AUTH_TOKEN set (see
-// src/server/auth.ts) -- on a plain local run every call just goes through
-// with no token and no prompt, same as before auth existed.
-async function apiFetch(url, options = {}) {
-  const token = localStorage.getItem(AUTH_TOKEN_KEY);
-  const headers = { ...(options.headers || {}) };
-  if (token) headers.Authorization = `Bearer ${token}`;
-
-  let res = await fetch(url, { ...options, headers });
-  if (res.status === 401) {
-    const entered = prompt("This dashboard requires an access token to make changes. Enter it:");
-    if (!entered) return res;
-    localStorage.setItem(AUTH_TOKEN_KEY, entered);
-    res = await fetch(url, { ...options, headers: { ...headers, Authorization: `Bearer ${entered}` } });
-    if (res.status === 401) localStorage.removeItem(AUTH_TOKEN_KEY);
-  }
-  return res;
-}
-
 // Referenced by name from the inline onerror handler in spriteSlot() below.
 const POKEBALL_PLACEHOLDER_SVG = `<svg class="sprite-placeholder" viewBox="0 0 64 64" aria-hidden="true">
   <circle cx="32" cy="32" r="29" fill="none" stroke="#9aa1ac" stroke-width="4"/>
@@ -687,7 +666,7 @@ contentEl.addEventListener("submit", async (e) => {
   const speciesName = form.speciesName.value.trim();
   if (!speciesName) return;
 
-  const res = await apiFetch("/api/sightings", {
+  const res = await fetch("/api/sightings", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -705,7 +684,7 @@ contentEl.addEventListener("submit", async (e) => {
 contentEl.addEventListener("click", async (e) => {
   const removeBtn = e.target.closest("[data-remove-id]");
   if (removeBtn) {
-    const res = await apiFetch(`/api/sightings/${removeBtn.dataset.removeId}`, { method: "DELETE" });
+    const res = await fetch(`/api/sightings/${removeBtn.dataset.removeId}`, { method: "DELETE" });
     if (res.ok || res.status === 404) {
       await loadSightings();
       render();
@@ -751,7 +730,7 @@ contentEl.addEventListener("input", (e) => {
 
 async function loadSightings() {
   try {
-    const res = await apiFetch("/api/sightings");
+    const res = await fetch("/api/sightings");
     if (res.ok) sightings = await res.json();
   } catch {
     // sightings are a local convenience feature; leave the list as-is on failure
@@ -760,7 +739,7 @@ async function loadSightings() {
 
 async function load() {
   try {
-    const res = await apiFetch("/api/scoreboard.json");
+    const res = await fetch("/api/scoreboard.json");
     if (!res.ok) throw new Error(`http ${res.status}`);
     scoreboard = await res.json();
     document.getElementById("generated-at").textContent =

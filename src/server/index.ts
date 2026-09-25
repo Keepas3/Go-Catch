@@ -3,7 +3,6 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { addSighting, deleteSighting, listSightings } from "./sightingsStore.js";
 import { scoreSighting } from "./sightingScorer.js";
-import { requireAuth } from "./auth.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, "..", "..");
@@ -13,7 +12,6 @@ const port = process.env.PORT ? Number(process.env.PORT) : 3000;
 
 app.use(express.json());
 app.use(express.static(path.join(root, "web")));
-app.use("/api", requireAuth);
 
 app.get("/api/scoreboard.json", (_req, res) => {
   res.sendFile(path.join(root, "cache", "scoreboard.json"), (err) => {
