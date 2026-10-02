@@ -8,7 +8,7 @@
     "sync": "tsx src/data-sync/run.ts",
     "serve": "tsx src/server/index.ts",
     "dev": "npm run sync && npm run serve",
-    "start": "npm run sync && npm run serve"
+    "build:site": "tsx src/build-site.ts"
   },
   "dependencies": {
     "express": "^4.19.2"

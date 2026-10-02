@@ -33,37 +33,33 @@ a few well-known legendaries/metas where the automatic stat-based scoring
 undersells them; gym-defender scoring is plain HP×Defense bulk (moves aren't
 generally the deciding factor for defenders).
 
-## Usage
+## Usage (local)
 
 ```bash
 npm install
-npm run sync   # fetches fresh data and writes cache/scoreboard.json
-npm run serve  # serves the dashboard at http://localhost:3000
+npm run sync        # fetches fresh data into cache/ (scoreboard.json, sighting-scores.json)
+npm run serve       # serves the dashboard at http://localhost:3000
+npm run build:site  # assembles the deployable static site into dist-site/
 ```
 
-Or `npm run dev` to do both. Re-run `npm run sync` periodically to keep the
-scoreboard current — source data updates roughly daily. The dashboard server
-just serves whatever `cache/scoreboard.json` currently contains, so re-running
-sync doesn't require restarting the server.
+`npm run dev` runs sync then serve. The local server is dev-only: it serves
+`web/` and exposes `cache/` at `/data`, the same layout as the deployed site.
 
-## Automatic sync (Windows Task Scheduler)
+## Hosting and automatic refresh (GitHub Actions + GitHub Pages)
 
-A weekly sync is already set up on this machine:
+The site is fully static. [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)
+runs `npm run sync` and `npm run build:site`, then publishes `dist-site/` to
+GitHub Pages:
 
-- **Task name:** `PogoCatchListSync` (Windows Task Scheduler)
-- **Runs:** every Sunday at 6:00 AM
-- **What it runs:** [`sync.bat`](sync.bat), which `cd`s into this folder and runs
-  `npm run sync`, appending output to `sync.log` (gitignored, local only)
+- **When:** daily on a schedule, on every push to `main`, and on demand from the
+  repo's **Actions** tab (**Run workflow**).
+- **One-time setup:** repo **Settings -> Pages -> Source: GitHub Actions**.
+- **If a sync fails** (an upstream feed is down), the deploy is skipped and the
+  last good site stays live.
+- GitHub pauses scheduled workflows in public repos after 60 days with no repo
+  activity. Any push resets that; if it's ever paused, re-enable it from the
+  Actions tab.
 
-Manage it with:
-
-```powershell
-schtasks /query /tn "PogoCatchListSync" /v /fo LIST   # check status / next run time
-schtasks /run /tn "PogoCatchListSync"                  # trigger a run right now
-schtasks /change /tn "PogoCatchListSync" /st 06:00     # change the time
-schtasks /delete /tn "PogoCatchListSync" /f            # remove it
-```
-
-Note: this only fires if the machine is on and awake at the scheduled time —
-Task Scheduler doesn't run missed tasks retroactively by default. Check
-`sync.log` if the dashboard looks stale.
+**My Sightings** is stored in each visitor's own browser (localStorage), so a
+log is private to that browser and doesn't sync across devices. Worth scores for
+logged species are pre-computed at sync time (`data/sighting-scores.json`).

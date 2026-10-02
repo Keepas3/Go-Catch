@@ -7,6 +7,7 @@ import { fetchMoves } from "./fetchMoves.js";
 import { buildSpawnPool } from "./buildSpawnPool.js";
 import { buildNews } from "./buildNews.js";
 import { computeScores } from "./computeScores.js";
+import { buildSightingScores } from "./buildSightingScores.js";
 import type { CuratedOverride, PvpLeague, RankedSpecies, ScoreboardOutput } from "./types.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -86,6 +87,10 @@ async function main() {
     raidBosses,
     news,
   };
+
+  const sightingScores = buildSightingScores(pvpoke.gamemaster, pvpoke.rankings, overrides, moves);
+  await writeFile(path.join(cacheDir, "sighting-scores.json"), JSON.stringify(sightingScores));
+  console.log(`  -> pre-scored ${sightingScores.length} species for the sightings log`);
 
   await writeFile(path.join(cacheDir, "scoreboard.json"), JSON.stringify(output, null, 2));
   console.log(`Done. Wrote ${path.join(cacheDir, "scoreboard.json")}`);

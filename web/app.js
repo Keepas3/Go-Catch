@@ -351,7 +351,7 @@ function renderSightingItem(s) {
       </div>
       <div>
         ${badge}
-        <button class="remove-btn" data-remove-id="${s.id}">Remove</button>
+        <button class="remove-btn" data-remove-id="${escapeHtml(s.id)}">Remove</button>
       </div>
     </div>
   `;
@@ -377,7 +377,7 @@ function renderSightingsTab() {
   const filteredSightings = filterBySearch(sightings);
   const list =
     sightings.length === 0
-      ? '<div class="empty">No sightings yet — log what you catch above. This is your own private log.</div>'
+      ? '<div class="empty">No sightings yet — log what you catch above.</div>'
       : filteredSightings.length === 0
         ? '<div class="empty">No logged sightings match that search.</div>'
         : filteredSightings.map(renderSightingItem).join("");
@@ -389,7 +389,7 @@ function renderSightingsTab() {
       ${communitySection}
     </details>
     <h2 class="group-heading">My Sightings</h2>
-    <p class="tab-note">Your own wild-encounter log — track what you actually catch out in the world.</p>
+    <p class="tab-note">Your own wild-encounter log — track what you actually catch out in the world. Saved privately in this browser only.${sightingsStorageBlocked ? " <strong>Your browser is blocking local storage, so new entries can't be saved.</strong>" : ""}</p>
     ${form}
     ${list}
   `;
@@ -666,29 +666,24 @@ contentEl.addEventListener("submit", async (e) => {
   const speciesName = form.speciesName.value.trim();
   if (!speciesName) return;
 
-  const res = await fetch("/api/sightings", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      speciesName,
-      note: form.note.value.trim(),
-      canBeShiny: form.canBeShiny.checked,
-    }),
-  });
-  if (res.ok) {
-    await loadSightings();
-    render();
-  }
+  const entry = {
+    id: newSightingId(),
+    speciesName: speciesName.slice(0, 80),
+    note: form.note.value.trim().slice(0, 200) || null,
+    canBeShiny: form.canBeShiny.checked,
+    loggedAt: new Date().toISOString(),
+  };
+  writeStoredSightings([entry, ...readStoredSightings()]);
+  await loadSightings();
+  render();
 });
 
 contentEl.addEventListener("click", async (e) => {
   const removeBtn = e.target.closest("[data-remove-id]");
   if (removeBtn) {
-    const res = await fetch(`/api/sightings/${removeBtn.dataset.removeId}`, { method: "DELETE" });
-    if (res.ok || res.status === 404) {
-      await loadSightings();
-      render();
-    }
+    writeStoredSightings(readStoredSightings().filter((s) => s.id !== removeBtn.dataset.removeId));
+    await loadSightings();
+    render();
     return;
   }
 
@@ -728,18 +723,70 @@ contentEl.addEventListener("input", (e) => {
   }
 });
 
-async function loadSightings() {
+// The sightings log lives in this browser's localStorage (the site is static,
+// there's no server to store it). Pre-scored species data is built at sync
+// time into data/sighting-scores.json and matched here by name.
+const SIGHTINGS_KEY = "pogo_sightings";
+let sightingScores = null;
+let sightingsStorageBlocked = false;
+
+function newSightingId() {
+  return crypto.randomUUID?.() ?? `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+}
+
+function readStoredSightings() {
   try {
-    const res = await fetch("/api/sightings");
-    if (res.ok) sightings = await res.json();
+    const list = JSON.parse(localStorage.getItem(SIGHTINGS_KEY) || "[]");
+    return Array.isArray(list) ? list.filter((s) => s && typeof s.speciesName === "string") : [];
   } catch {
-    // sightings are a local convenience feature; leave the list as-is on failure
+    return [];
   }
+}
+
+function writeStoredSightings(list) {
+  try {
+    localStorage.setItem(SIGHTINGS_KEY, JSON.stringify(list));
+    sightingsStorageBlocked = false;
+  } catch {
+    sightingsStorageBlocked = true;
+  }
+}
+
+// Same matching rules the sync pipeline uses for LeekDuck names: strip a
+// trailing "wearing ...", then take the first (longest-name-first) species that
+// appears as a whole word. Records arrive pre-sorted in that order.
+function resolveSpecies(rawName, records) {
+  const haystack = rawName.replace(/\s+wearing\s+.*$/i, "").trim().toLowerCase();
+  for (const r of records) {
+    const idx = haystack.indexOf(r.key);
+    if (idx === -1) continue;
+    const before = idx === 0 ? " " : haystack[idx - 1];
+    const after = idx + r.key.length >= haystack.length ? " " : haystack[idx + r.key.length];
+    if (/[a-z0-9]/i.test(before) || /[a-z0-9]/i.test(after)) continue;
+    return { resolved: true, ...r };
+  }
+  return { resolved: false };
+}
+
+async function loadSightings() {
+  const stored = readStoredSightings().sort((a, b) => String(b.loggedAt).localeCompare(String(a.loggedAt)));
+  if (stored.length && !sightingScores) {
+    try {
+      const res = await fetch("data/sighting-scores.json");
+      if (res.ok) sightingScores = await res.json();
+    } catch {
+      // leave scores unloaded; entries still show, just without a worth calculation
+    }
+  }
+  sightings = stored.map((s) => ({
+    ...s,
+    worth: sightingScores ? resolveSpecies(s.speciesName, sightingScores) : null,
+  }));
 }
 
 async function load() {
   try {
-    const res = await fetch("/api/scoreboard.json");
+    const res = await fetch("data/scoreboard.json");
     if (!res.ok) throw new Error(`http ${res.status}`);
     scoreboard = await res.json();
     document.getElementById("generated-at").textContent =
