@@ -33,6 +33,25 @@ jobs:
         with:
           path: dist-site
 
+  # GitHub pauses scheduled workflows on public repos after 60 days without repo
+  # activity. If the latest commit is getting old, push an empty one to reset it.
+  keepalive:
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          age_days=$(( ( $(date +%s) - $(git log -1 --format=%ct) ) / 86400 ))
+          echo "Latest commit is ${age_days} days old"
+          if [ "$age_days" -ge 45 ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit --allow-empty -m "keepalive: repo activity to keep scheduled workflow enabled"
+            git push
+          fi
+
   deploy:
     needs: build
     runs-on: ubuntu-latest
