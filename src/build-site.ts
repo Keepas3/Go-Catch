@@ -11,7 +11,7 @@ const out = path.join(root, "dist-site");
 await rm(out, { recursive: true, force: true });
 await cp(path.join(root, "web"), out, { recursive: true });
 await mkdir(path.join(out, "data"), { recursive: true });
-for (const file of ["scoreboard.json", "sighting-scores.json"]) {
+for (const file of ["scoreboard.json", "sighting-scores.json", "hub-links.json"]) {
   await cp(path.join(root, "cache", file), path.join(out, "data", file));
 }
 console.log(`Built static site in ${out}`);

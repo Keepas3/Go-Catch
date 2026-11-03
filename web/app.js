@@ -69,12 +69,19 @@ function safeHref(url) {
   return "#";
 }
 
+// speciesId -> database page slug, only for species whose page isn't the plain
+// dex number (forms like "487-Origin"; null = the site has no page). Built at
+// sync time from the database's own sitemap.
+let hubLinks = {};
+
 // Links a species name out to its Pokemon GO Hub database page (stats, moves,
 // counters, evolutions). dex is a number from our own data; no dex, no link.
-function speciesLink(name, dex) {
+function speciesLink(name, dex, speciesId) {
   const text = escapeHtml(name);
   if (!Number.isInteger(dex) || dex < 1) return text;
-  return `<a class="species-link" href="https://db.pokemongohub.net/pokemon/${dex}" target="_blank" rel="noopener noreferrer">${text}</a>`;
+  const slug = speciesId && speciesId in hubLinks ? hubLinks[speciesId] : String(dex);
+  if (!slug) return text;
+  return `<a class="species-link" href="https://db.pokemongohub.net/pokemon/${encodeURIComponent(slug)}" target="_blank" rel="noopener noreferrer">${text}</a>`;
 }
 
 // Referenced by name from the inline onerror handler in spriteSlot() below.
@@ -157,7 +164,7 @@ function renderPvpLeagueCard(species, index, league) {
       ${spriteSlot(species.dex, species.canBeShiny)}
       <div>
         <div class="name">
-          ${speciesLink(species.speciesName, species.dex)}
+          ${speciesLink(species.speciesName, species.dex, species.speciesId)}
           ${typeChips(species.types)}
           ${species.canBeShiny ? '<span class="shiny-badge">shiny</span>' : ""}
         </div>
@@ -198,7 +205,7 @@ function renderCard(species, index, categoryKey) {
       ${spriteSlot(species.dex, species.canBeShiny)}
       <div>
         <div class="name">
-          ${speciesLink(species.speciesName, species.dex)}
+          ${speciesLink(species.speciesName, species.dex, species.speciesId)}
           ${typeChips(species.types)}
           ${species.canBeShiny ? '<span class="shiny-badge">shiny</span>' : ""}
         </div>
@@ -221,7 +228,7 @@ function renderVerdictCard(species, index) {
       ${spriteSlot(species.dex, species.canBeShiny)}
       <div>
         <div class="name">
-          ${speciesLink(species.speciesName, species.dex)}
+          ${speciesLink(species.speciesName, species.dex, species.speciesId)}
           ${typeChips(species.types)}
           ${species.canBeShiny ? '<span class="shiny-badge">shiny</span>' : ""}
         </div>
@@ -348,7 +355,7 @@ function renderSightingItem(s) {
       ${spriteSlot(dex, s.canBeShiny)}
       <div>
         <div class="name">
-          ${speciesLink(s.speciesName, dex)}
+          ${speciesLink(s.speciesName, dex, worth?.speciesId)}
           ${typeChips(types)}
           ${s.canBeShiny ? '<span class="shiny-badge">shiny</span>' : ""}
         </div>
@@ -410,7 +417,7 @@ function renderCompactItem(species, tier, label) {
   return `
     <div class="compact-item">
       ${spriteSlot(species.dex, species.canBeShiny)}
-      <div class="compact-name">${speciesLink(species.speciesName, species.dex)}${species.canBeShiny ? ' <span class="shiny-badge">shiny</span>' : ""}</div>
+      <div class="compact-name">${speciesLink(species.speciesName, species.dex, species.speciesId)}${species.canBeShiny ? ' <span class="shiny-badge">shiny</span>' : ""}</div>
       ${badge}
     </div>
   `;
@@ -530,7 +537,7 @@ function renderDashboard() {
   const sightingsBody = sightings.length
     ? sightings
         .slice(0, 3)
-        .map((s) => `<div class="compact-item"><div class="compact-name">${speciesLink(s.speciesName, s.worth?.dex)}</div></div>`)
+        .map((s) => `<div class="compact-item"><div class="compact-name">${speciesLink(s.speciesName, s.worth?.dex, s.worth?.speciesId)}</div></div>`)
         .join("") + `<div class="panel-empty">${sightings.length} logged</div>`
     : '<div class="panel-empty">No sightings logged yet.</div>';
   const sightingsPanel = panelHtml("My Sightings", "sightings", sightingsBody);
@@ -794,6 +801,10 @@ async function loadSightings() {
 
 async function load() {
   try {
+    // Optional: without it, links fall back to plain dex-number pages.
+    hubLinks = await fetch("data/hub-links.json")
+      .then((r) => (r.ok ? r.json() : {}))
+      .catch(() => ({}));
     const res = await fetch("data/scoreboard.json");
     if (!res.ok) throw new Error(`http ${res.status}`);
     scoreboard = await res.json();
