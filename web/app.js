@@ -69,6 +69,14 @@ function safeHref(url) {
   return "#";
 }
 
+// Links a species name out to its Pokemon GO Hub database page (stats, moves,
+// counters, evolutions). dex is a number from our own data; no dex, no link.
+function speciesLink(name, dex) {
+  const text = escapeHtml(name);
+  if (!Number.isInteger(dex) || dex < 1) return text;
+  return `<a class="species-link" href="https://db.pokemongohub.net/pokemon/${dex}" target="_blank" rel="noopener noreferrer">${text}</a>`;
+}
+
 // Referenced by name from the inline onerror handler in spriteSlot() below.
 const POKEBALL_PLACEHOLDER_SVG = `<svg class="sprite-placeholder" viewBox="0 0 64 64" aria-hidden="true">
   <circle cx="32" cy="32" r="29" fill="none" stroke="#9aa1ac" stroke-width="4"/>
@@ -149,7 +157,7 @@ function renderPvpLeagueCard(species, index, league) {
       ${spriteSlot(species.dex, species.canBeShiny)}
       <div>
         <div class="name">
-          ${escapeHtml(species.speciesName)}
+          ${speciesLink(species.speciesName, species.dex)}
           ${typeChips(species.types)}
           ${species.canBeShiny ? '<span class="shiny-badge">shiny</span>' : ""}
         </div>
@@ -190,7 +198,7 @@ function renderCard(species, index, categoryKey) {
       ${spriteSlot(species.dex, species.canBeShiny)}
       <div>
         <div class="name">
-          ${escapeHtml(species.speciesName)}
+          ${speciesLink(species.speciesName, species.dex)}
           ${typeChips(species.types)}
           ${species.canBeShiny ? '<span class="shiny-badge">shiny</span>' : ""}
         </div>
@@ -213,7 +221,7 @@ function renderVerdictCard(species, index) {
       ${spriteSlot(species.dex, species.canBeShiny)}
       <div>
         <div class="name">
-          ${escapeHtml(species.speciesName)}
+          ${speciesLink(species.speciesName, species.dex)}
           ${typeChips(species.types)}
           ${species.canBeShiny ? '<span class="shiny-badge">shiny</span>' : ""}
         </div>
@@ -340,7 +348,7 @@ function renderSightingItem(s) {
       ${spriteSlot(dex, s.canBeShiny)}
       <div>
         <div class="name">
-          ${escapeHtml(s.speciesName)}
+          ${speciesLink(s.speciesName, dex)}
           ${typeChips(types)}
           ${s.canBeShiny ? '<span class="shiny-badge">shiny</span>' : ""}
         </div>
@@ -402,7 +410,7 @@ function renderCompactItem(species, tier, label) {
   return `
     <div class="compact-item">
       ${spriteSlot(species.dex, species.canBeShiny)}
-      <div class="compact-name">${escapeHtml(species.speciesName)}${species.canBeShiny ? ' <span class="shiny-badge">shiny</span>' : ""}</div>
+      <div class="compact-name">${speciesLink(species.speciesName, species.dex)}${species.canBeShiny ? ' <span class="shiny-badge">shiny</span>' : ""}</div>
       ${badge}
     </div>
   `;
@@ -522,7 +530,7 @@ function renderDashboard() {
   const sightingsBody = sightings.length
     ? sightings
         .slice(0, 3)
-        .map((s) => `<div class="compact-item"><div class="compact-name">${escapeHtml(s.speciesName)}</div></div>`)
+        .map((s) => `<div class="compact-item"><div class="compact-name">${speciesLink(s.speciesName, s.worth?.dex)}</div></div>`)
         .join("") + `<div class="panel-empty">${sightings.length} logged</div>`
     : '<div class="panel-empty">No sightings logged yet.</div>';
   const sightingsPanel = panelHtml("My Sightings", "sightings", sightingsBody);
