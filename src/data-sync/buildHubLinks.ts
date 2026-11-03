@@ -1,3 +1,6 @@
+import { readFile } from "node:fs/promises";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import type { PvPokeGamemasterPokemon } from "./types.js";
 
 // Pokemon GO Hub keys most pages by dex number (/pokemon/6), but forms use their
@@ -25,6 +28,22 @@ export async function fetchHubSlugs(): Promise<Set<string>> {
     for (const m of xml.matchAll(/<loc>[^<]*\/pokemon\/([^/<]+)<\/loc>/g)) slugs.add(m[1]);
   }
   return slugs;
+}
+
+/**
+ * Live sitemap when reachable, otherwise the checked-in snapshot. The hub may
+ * block or throttle CI servers, and stale-but-correct links beat dex-number
+ * links that 404 for forms. Refresh the snapshot occasionally by re-running
+ * fetchHubSlugs() locally and saving the result.
+ */
+export async function loadHubSlugs(): Promise<Set<string>> {
+  try {
+    return await fetchHubSlugs();
+  } catch (err) {
+    console.warn(`Could not read the hub's live sitemap (${err instanceof Error ? err.message : err}); using the saved snapshot.`);
+    const file = path.join(path.dirname(fileURLToPath(import.meta.url)), "hubSlugs.snapshot.json");
+    return new Set(JSON.parse(await readFile(file, "utf-8")) as string[]);
+  }
 }
 
 function formTokens(speciesName: string): string[] {

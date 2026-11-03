@@ -8,7 +8,7 @@ import { buildSpawnPool } from "./buildSpawnPool.js";
 import { buildNews } from "./buildNews.js";
 import { computeScores } from "./computeScores.js";
 import { buildSightingScores } from "./buildSightingScores.js";
-import { buildHubLinks, fetchHubSlugs } from "./buildHubLinks.js";
+import { buildHubLinks, loadHubSlugs } from "./buildHubLinks.js";
 import type { CuratedOverride, PvpLeague, RankedSpecies, ScoreboardOutput } from "./types.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -93,11 +93,11 @@ async function main() {
   await writeFile(path.join(cacheDir, "sighting-scores.json"), JSON.stringify(sightingScores));
   console.log(`  -> pre-scored ${sightingScores.length} species for the sightings log`);
 
-  // Nice-to-have: if the hub's sitemap can't be read, links just fall back to
-  // plain dex-number URLs instead of failing the whole sync.
+  // Nice-to-have: never fail the whole sync over database links; worst case they
+  // fall back to plain dex-number URLs.
   let hubLinks: Record<string, string | null> = {};
   try {
-    hubLinks = buildHubLinks(pvpoke.gamemaster, await fetchHubSlugs());
+    hubLinks = buildHubLinks(pvpoke.gamemaster, await loadHubSlugs());
     console.log(`  -> ${Object.keys(hubLinks).length} species with a non-default database page`);
   } catch (err) {
     console.warn("Could not build database link map; using dex-number links:", err);
